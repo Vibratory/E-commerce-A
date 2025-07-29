@@ -1,14 +1,16 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
+// Only allow these routes without auth
 const isPublicRoute = createRouteMatcher([
-  
-  "/:path*",
+  "/sign-in",
+  "/sign-up",
 ]);
 
 export default clerkMiddleware((auth, req) => {
-  if (isPublicRoute(req)) return; // Skip auth
+  if (isPublicRoute(req)) return; // Skip auth for sign-in/up
+  // Everything else requires authentication
 });
 
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
 };
