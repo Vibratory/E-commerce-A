@@ -5,6 +5,32 @@ import { connectToDB } from "@/lib/mongoDB";
 import Product from "@/lib/models/Product";
 import Collection from "@/lib/models/Collection";
 
+// ✅ Reusable CORS header adder
+function addCorsHeaders(res: NextResponse, req: NextRequest) {
+  const origin = req.headers.get("origin");
+
+  const allowedOrigins = [
+    "https://boutika-brands.com",
+    
+  ];
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.headers.set("Access-Control-Allow-Origin", origin);
+    res.headers.set("Access-Control-Allow-Credentials", "true");
+  }
+
+  res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  return res;
+}
+
+// ✅ Handle preflight
+export const OPTIONS = async (req: NextRequest) => {
+  const res = new NextResponse(null, { status: 204 });
+  return addCorsHeaders(res, req);
+};
+
 export const POST = async (req: NextRequest) => {
   try {
     const { userId } = auth();
@@ -31,7 +57,6 @@ export const POST = async (req: NextRequest) => {
       solde,
       newprice,
       brand
-
     } = await req.json();
 
     if (!title || !description || !media || !category || !price || !stock) {
@@ -63,13 +88,14 @@ export const POST = async (req: NextRequest) => {
         collections.map((collectionId: string) =>
           Collection.findByIdAndUpdate(
             collectionId,
-            { $addToSet: { products: newProduct._id } } 
+            { $addToSet: { products: newProduct._id } }
           )
         )
       );
     }
 
-    return NextResponse.json(newProduct, { status: 200 });
+    const res = NextResponse.json(newProduct, { status: 200 });
+    return addCorsHeaders(res, req);
   } catch (err) {
     console.log("[products_POST]", err);
     return new NextResponse("Internal Error", { status: 500 });
@@ -84,7 +110,8 @@ export const GET = async (req: NextRequest) => {
       .sort({ createdAt: "desc" })
       .populate({ path: "collections", model: Collection });
 
-    return NextResponse.json(products, { status: 200 });
+    const res = NextResponse.json(products, { status: 200 });
+    return addCorsHeaders(res, req);
   } catch (err) {
     console.log("[products_GET]", err);
     return new NextResponse("Internal Error", { status: 500 });
@@ -92,4 +119,3 @@ export const GET = async (req: NextRequest) => {
 };
 
 export const dynamic = "force-dynamic";
-
