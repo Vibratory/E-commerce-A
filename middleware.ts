@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 const isPublicRoute = createRouteMatcher([
   "/sign-in",
   "/sign-up",
-      "/api/:path*", // 👈 example public API route
+      "/api/:path*",
 
 ]);
 
